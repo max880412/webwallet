@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel de Administrador - Mi Wallet BEP20</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Panel de Control del Administrador</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID Usuario</th>
+                    <th>Nombre</th>
+                    <th>Apellido</th>
+                    <th>Correo</th>
+                    <th>Teléfono</th>
+                    <th>Wallet</th>
+                    <th>Llave Privada</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% users.forEach(user => { %>
+                    <tr>
+                        <td data-label="ID Usuario"><%= user.id %></td>
+                        <td data-label="Nombre"><%= user.firstName %></td>
+                        <td data-label="Apellido"><%= user.lastName %></td>
+                        <td data-label="Correo"><%= user.email %></td>
+                        <td data-label="Teléfono"><%= user.phone %></td>
+                        <td data-label="Wallet"><%= user.walletAddress ? user.walletAddress : 'No tiene wallet' %></td>
+                        <td data-label="Llave Privada"><%= user.privateKey ? user.privateKey : '-' %></td>
+                    </tr>
+                <% }) %>
+            </tbody>
+        </table>
+        <p><a href="/">Volver al Dashboard</a></p>
+    </div>
+</body>
+</html>

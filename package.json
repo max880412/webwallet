@@ -1,13 +1,18 @@
 {
   "name": "mi-wallet-node",
   "version": "1.0.0",
-  "description": "Demo de wallet BEP20 en Node.js",
+  "description": "Aplicación profesional de wallet BEP20 con registro, login y panel admin",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
     "axios": "^1.4.0",
-    "express": "^4.18.2"
+    "bcrypt": "^5.1.0",
+    "body-parser": "^1.20.2",
+    "ejs": "^3.1.9",
+    "express": "^4.18.2",
+    "express-session": "^1.17.3",
+    "sqlite3": "^5.1.6"
   }
 }
