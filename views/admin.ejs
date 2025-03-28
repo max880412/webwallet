@@ -46,48 +46,60 @@
         <li class="admin-tab active" data-tab="clientes">Clientes</li>
         <li class="admin-tab" data-tab="transacciones">Transacciones</li>
       </ul>
-      <!-- Clientes: se muestran en "cards" -->
+      
+      <!-- Clientes -->
       <div class="admin-tab-content active" id="clientes">
-        <% if (users && users.length > 0) { %>
-          <% users.forEach(function(user) { %>
-            <div class="client-card">
-              <div class="client-field">
-                <label>Nombre y Apellidos:</label>
-                <span><%= user.firstName %> <%= user.lastName %></span>
-              </div>
-              <div class="client-field">
-                <label>Email:</label>
-                <span><%= user.email %></span>
-              </div>
-              <div class="client-field">
-                <label>Teléfono:</label>
-                <span><%= user.phone %></span>
-              </div>
-              <div class="client-field">
-                <label>Wallet Address:</label>
-                <span><%= user.walletAddress ? user.walletAddress : 'No tiene wallet' %></span>
-              </div>
-              <div class="client-field">
-                <label>Private Key:</label>
-                <span class="private-key" data-key="<%= user.privateKey %>">
-                  <%= user.privateKey ? '************' : '-' %>
-                </span>
-                <% if (user.privateKey) { %>
-                  <label class="toggle-label">
-                    <input type="checkbox" class="toggle-pkey"> Mostrar
-                  </label>
-                <% } %>
-              </div>
-              <% if(user.banned == 1) { %>
-                <p style="color: red; font-weight: bold;">Usuario BANEADO</p>
-              <% } %>
-            </div>
-          <% }); %>
+  <% if (users && users.length > 0) { %>
+    <% users.forEach(function(user) { %>
+      <div class="client-card" id="client-<%= user.id %>">
+        <div class="client-field">
+          <label>Nombre y Apellidos:</label>
+          <span><%= user.firstName %> <%= user.lastName %></span>
+        </div>
+        <div class="client-field">
+          <label>Email:</label>
+          <span><%= user.email %></span>
+        </div>
+        <div class="client-field">
+          <label>Teléfono:</label>
+          <span><%= user.phone %></span>
+        </div>
+        <div class="client-field">
+          <label>Wallet Address:</label>
+          <span><%= user.walletAddress ? user.walletAddress : 'No tiene wallet' %></span>
+        </div>
+        <div class="client-field">
+          <label>Private Key:</label>
+          <span class="private-key" data-key="<%= user.privateKey %>">
+            <%= user.privateKey ? '************' : '-' %>
+          </span>
+          <% if (user.privateKey) { %>
+            <label class="toggle-label">
+              <input type="checkbox" class="toggle-pkey"> Mostrar
+            </label>
+          <% } %>
+        </div>
+        <% if(user.banned == 1) { %>
+          <p style="color: red; font-weight: bold;">Usuario BANEADO</p>
         <% } else { %>
-          <p>No se encontraron clientes.</p>
+          <button onclick="banUser(<%= user.id %>)">Banear</button>
+        <% } %>
+        <% if(user.walletId) { %>
+          <button onclick="toggleTransactions(<%= user.id %>, <%= user.walletId %>)">Mostrar transacciones</button>
+          <div class="client-transactions" id="transactions-<%= user.id %>" style="display:none;">
+            <div id="trans-list-<%= user.id %>"></div>
+            <div id="trans-pagination-<%= user.id %>"></div>
+          </div>
         <% } %>
       </div>
-      <!-- Transacciones: se muestran en "cards" con botones -->
+    <% }); %>
+  <% } else { %>
+    <p>No se encontraron clientes.</p>
+  <% } %>
+</div>
+
+      
+      <!-- Transacciones Globales -->
       <div class="admin-tab-content" id="transacciones">
         <% if (transactions && transactions.length > 0) { %>
           <% transactions.forEach(function(tx) { %>
@@ -98,13 +110,7 @@
               <span><strong>To:</strong> <%= tx.toAddress %></span><br>
               <span><strong>Valor:</strong> <%= tx.value %> USDT</span><br>
               <span><strong>Tipo:</strong> <%= tx.direction %></span><br>
-              <span><strong>Fecha:</strong> <%= tx.createdAt %></span><br>
-              <% if (tx.direction === 'deposit') { %>
-                <button onclick="refundTx(<%= tx.id %>)">Devolver</button>
-                <% if(tx.email){ %>
-                  <button onclick="banUser('<%= tx.email %>')">Banear</button>
-                <% } %>
-              <% } %>
+              <span><strong>Fecha:</strong> <%= tx.createdAt %></span>
             </div>
           <% }); %>
         <% } else { %>
@@ -129,7 +135,7 @@
       });
     });
     
-    // Funcionalidad para mostrar/ocultar la Private Key
+    // Mostrar/ocultar Private Key
     document.querySelectorAll('.toggle-pkey').forEach(function(checkbox) {
       checkbox.addEventListener('change', function() {
         var span = this.closest('.client-field').querySelector('.private-key');
@@ -141,31 +147,75 @@
       });
     });
     
-    // Función para llamar al endpoint de devolución manual
-    function refundTx(txId) {
-      fetch('/admin/refund/' + txId, {
-        method: 'POST'
-      })
+    // Función para banear un usuario
+    function banUser(userId) {
+		if(confirm("¿Estás seguro de banear al usuario?")) {
+		fetch('/admin/ban/' + userId, {
+		method: 'POST'
+		})
+		.then(response => response.json())
+		.then(data => {
+		alert(data.success ? "Usuario baneado" : data.error);
+		location.reload();
+    })
+    .catch(err => console.error(err));
+  }
+}
+
+    
+    // Función para cargar transacciones de un cliente con paginación
+    function loadTransactions(userId, walletId, page = 1) {
+      fetch(`/admin/client-transactions/${walletId}?page=` + page)
       .then(response => response.json())
       .then(data => {
-        alert(data.success ? "Devolución procesada" : data.error);
-        location.reload();
+        const transList = document.getElementById('trans-list-' + userId);
+        const paginationDiv = document.getElementById('trans-pagination-' + userId);
+        transList.innerHTML = "";
+        if(data.transactions.length > 0) {
+          data.transactions.forEach(tx => {
+            const div = document.createElement('div');
+            div.classList.add('transaction-card');
+            div.innerHTML = `
+              <span><strong>Tx Hash:</strong> ${tx.txHash}</span><br>
+              <span><strong>From:</strong> ${tx.fromAddress}</span><br>
+              <span><strong>Valor:</strong> ${tx.value} USDT</span><br>
+              <span><strong>Fecha:</strong> ${tx.createdAt}</span>
+            `;
+            transList.appendChild(div);
+          });
+        } else {
+          transList.innerHTML = "<p>No hay transacciones para este cliente.</p>";
+        }
+        // Crear controles de paginación
+        const totalPages = Math.ceil(data.total / data.pageSize);
+        paginationDiv.innerHTML = "";
+        if(totalPages > 1) {
+          if(page > 1) {
+            const prevBtn = document.createElement('button');
+            prevBtn.textContent = "Anterior";
+            prevBtn.onclick = () => loadTransactions(userId, walletId, page - 1);
+            paginationDiv.appendChild(prevBtn);
+          }
+          paginationDiv.innerHTML += `<span> Página ${page} de ${totalPages} </span>`;
+          if(page < totalPages) {
+            const nextBtn = document.createElement('button');
+            nextBtn.textContent = "Siguiente";
+            nextBtn.onclick = () => loadTransactions(userId, walletId, page + 1);
+            paginationDiv.appendChild(nextBtn);
+          }
+        }
       })
       .catch(err => console.error(err));
     }
     
-    // Función para banear usuario; para simplificar, se busca por email (debería buscarse por ID en producción)
-    function banUser(email) {
-      if(confirm("¿Estás seguro de banear al usuario " + email + "?")) {
-        fetch('/admin/ban/' + email, { // En este ejemplo se usa email como identificador
-          method: 'POST'
-        })
-        .then(response => response.json())
-        .then(data => {
-          alert(data.success ? "Usuario baneado" : data.error);
-          location.reload();
-        })
-        .catch(err => console.error(err));
+    // Función para mostrar/ocultar la lista de transacciones del cliente
+    function toggleTransactions(userId, walletId) {
+      const transDiv = document.getElementById('transactions-' + userId);
+      if(transDiv.style.display === "none") {
+        transDiv.style.display = "block";
+        loadTransactions(userId, walletId, 1);
+      } else {
+        transDiv.style.display = "none";
       }
     }
   </script>

@@ -9,40 +9,45 @@
   <%- include('partials/navbar.ejs') %>
   <div class="container">
     <h2>Deposit</h2>
-    <% if (!wallet) { %>
-      <p>No se encontró wallet. Por favor, crea una wallet desde el Dashboard.</p>
+    <% if (message) { %>
+      <p class="error"><%= message %></p>
+      <p>Por favor, actualiza tu perfil para definir tu Return Wallet (BEP20).</p>
     <% } else { %>
-      <div class="deposit-info">
-        <label>Your Deposit Wallet Address:</label>
-        <span><%= wallet.walletAddress %></span>
-      </div>
-      <div class="instructions">
-        <p>Envía fondos a la dirección indicada. Se confirmará el depósito una vez recibido el dinero.</p>
-      </div>
-      <h3>Depósitos Recientes</h3>
-      <% if (transactions.length === 0) { %>
-        <p>No se han recibido depósitos aún.</p>
+      <% if (!wallet) { %>
+        <p>No se encontró wallet. Por favor, crea una wallet desde el Dashboard.</p>
       <% } else { %>
-        <table>
-          <thead>
-            <tr>
-              <th>Tx Hash</th>
-              <th>From</th>
-              <th>Valor</th>
-              <th>Fecha</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% transactions.forEach(function(tx) { %>
+        <div class="deposit-info">
+          <label>Your Deposit Wallet Address:</label>
+          <span><%= wallet.walletAddress %></span>
+        </div>
+        <div class="instructions">
+          <p>Envía fondos a la dirección indicada. Se confirmará el depósito una vez recibido el dinero.</p>
+        </div>
+        <h3>Depósitos Recientes</h3>
+        <% if (transactions.length === 0) { %>
+          <p>No se han recibido depósitos aún.</p>
+        <% } else { %>
+          <table>
+            <thead>
               <tr>
-                <td><%= tx.txHash %></td>
-                <td><%= tx.fromAddress %></td>
-                <td><%= tx.value %> USDT</td>
-                <td><%= tx.createdAt %></td>
+                <th>Tx Hash</th>
+                <th>From</th>
+                <th>Valor</th>
+                <th>Fecha</th>
               </tr>
-            <% }) %>
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              <% transactions.forEach(function(tx) { %>
+                <tr>
+                  <td><%= tx.txHash %></td>
+                  <td><%= tx.fromAddress %></td>
+                  <td><%= tx.value %> USDT</td>
+                  <td><%= tx.createdAt %></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        <% } %>
       <% } %>
     <% } %>
   </div>

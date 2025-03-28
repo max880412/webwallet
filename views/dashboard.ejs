@@ -91,5 +91,20 @@
       activityList.insertBefore(li, activityList.firstChild);
     });
   </script>
+  <script src="/socket.io/socket.io.js"></script>
+	<script>
+	const socket = io();
+  
+	// Asume que tienes el userId almacenado en una variable global, por ejemplo, en un data-attribute en el navbar o similar.
+	// Para este ejemplo, supongamos que está en session (puedes inyectarlo en la vista).
+	const userId = "<%= session.userId %>";
+	socket.emit('registerUser', userId);
+  
+	socket.on('forceLogout', (data) => {
+    alert(data.message);
+    window.location.href = '/logout';
+  });
+</script>
+
 </body>
 </html>

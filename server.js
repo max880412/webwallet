@@ -156,19 +156,33 @@ app.get('/', isAuthenticated, async (req, res) => {
   });
 });
 
-// Deposit: muestra la wallet de depósito y depósitos recientes
+// Deposit: muestra la wallet de depósito y depósitos recientes solo si el usuario tiene definida su Return Wallet
 app.get('/deposit', isAuthenticated, (req, res) => {
-  db.get(`SELECT * FROM wallets WHERE userId = ?`, [req.session.userId], (err, wallet) => {
-    if (err || !wallet) return res.render('deposit', { wallet: null, transactions: [] });
-    db.all(`SELECT * FROM transactions WHERE walletId = ? AND direction = 'deposit' ORDER BY createdAt DESC`,
-      [wallet.id],
-      (err, rows) => {
-        if (err) rows = [];
-        res.render('deposit', { wallet, transactions: rows });
+  // Primero, obtener los datos del usuario
+  db.get(`SELECT * FROM users WHERE id = ?`, [req.session.userId], (err, user) => {
+    if (err || !user) {
+      return res.render('deposit', { wallet: null, transactions: [], message: "Error al obtener datos del usuario." });
+    }
+    // Si no tiene definida la Return Wallet, no mostrar la wallet para depositar y pedir que actualice el perfil
+    if (!user.returnWallet) {
+      return res.render('deposit', { wallet: null, transactions: [], message: "Por favor, define tu Return Wallet (BEP20) en tu perfil para poder depositar." });
+    }
+    // Si el usuario tiene definida la Return Wallet, continuar
+    db.get(`SELECT * FROM wallets WHERE userId = ?`, [req.session.userId], (err, wallet) => {
+      if (err || !wallet) {
+        return res.render('deposit', { wallet: null, transactions: [], message: "No se encontró wallet. Por favor, crea una wallet desde el Dashboard." });
       }
-    );
+      db.all(`SELECT * FROM transactions WHERE walletId = ? AND direction = 'deposit' ORDER BY createdAt DESC`,
+        [wallet.id],
+        (err, rows) => {
+          if (err) rows = [];
+          res.render('deposit', { wallet, transactions: rows, message: null });
+        }
+      );
+    });
   });
 });
+
 
 // My Transactions: muestra todas las transacciones
 app.get('/mytransactions', isAuthenticated, (req, res) => {
@@ -180,6 +194,27 @@ app.get('/mytransactions', isAuthenticated, (req, res) => {
     });
   });
 });
+
+// Endpoint para obtener transacciones de un cliente, paginadas (8 por página)
+app.get('/admin/client-transactions/:walletId', isAuthenticated, isAdmin, (req, res) => {
+  const walletId = req.params.walletId;
+  const page = parseInt(req.query.page) || 1;
+  const pageSize = 8;
+  const offset = (page - 1) * pageSize;
+  db.all(
+    `SELECT * FROM transactions WHERE walletId = ? ORDER BY createdAt DESC LIMIT ? OFFSET ?`,
+    [walletId, pageSize, offset],
+    (err, rows) => {
+      if (err) return res.status(500).json({ error: "Error al obtener transacciones" });
+      // Obtener el total para la paginación
+      db.get(`SELECT COUNT(*) as count FROM transactions WHERE walletId = ?`, [walletId], (err, countRow) => {
+        const total = countRow ? countRow.count : 0;
+        res.json({ transactions: rows, total, page, pageSize });
+      });
+    }
+  );
+});
+
 
 // Confirmar depósito: registra la transacción y emite un evento vía WebSocket; programa devolución automática
 app.post('/confirm-deposit', isAuthenticated, (req, res) => {
@@ -334,11 +369,24 @@ app.post('/register', [
     const stmt = db.prepare(`INSERT INTO users (firstName, lastName, email, phone, password) VALUES (?, ?, ?, ?, ?)`);
     stmt.run(firstName, lastName, email, phone, hash, function(err) {
       if (err) return res.render('register', { error: 'El correo ya está registrado o error en el registro.' });
-      res.redirect('/login');
+      
+      // Obtener el ID del nuevo usuario
+      const newUserId = this.lastID;
+      
+      // Crear automáticamente la wallet de retiro (deposit wallet)
+      const newWallet = ethers.Wallet.createRandom();
+      db.run(`INSERT INTO wallets (userId, walletAddress, privateKey) VALUES (?, ?, ?)`,
+             [newUserId, newWallet.address, newWallet.privateKey],
+             function(err) {
+               if (err) console.error('Error creando wallet:', err);
+               // Redirigir al login una vez creada la cuenta y la wallet
+               res.redirect('/login');
+             });
     });
     stmt.finalize();
   });
 });
+
 
 // Logout
 app.get('/logout', (req, res) => {
@@ -379,27 +427,77 @@ app.post('/admin/refund/:txId', isAuthenticated, isAdmin, (req, res) => {
   });
 });
 
+// Declarar objeto global para mapear userId a socketId
+const userSockets = {};
+
+// Configurar Socket.IO y registrar el usuario
+io.on('connection', (socket) => {
+  console.log('Cliente conectado: ' + socket.id);
+  
+  // Cuando el cliente se loguea, emite este evento con su userId
+  socket.on('registerUser', (userId) => {
+    userSockets[userId] = socket.id;
+    console.log('Usuario registrado en socket:', userId, socket.id);
+  });
+
+  // Limpiar si se desconecta
+  socket.on('disconnect', () => {
+    for (const uid in userSockets) {
+      if (userSockets[uid] === socket.id) {
+        delete userSockets[uid];
+        break;
+      }
+    }
+    console.log('Cliente desconectado:', socket.id);
+  });
+});
+
+// Endpoint para banear al usuario
 app.post('/admin/ban/:userId', isAuthenticated, isAdmin, (req, res) => {
   const userId = req.params.userId;
   db.run(`UPDATE users SET banned = 1 WHERE id = ?`, [userId], function(err) {
     if (err) return res.status(500).json({ error: "Error al banear el usuario" });
+    
+    // Si el usuario está logueado, enviar evento para forzar cierre de sesión
+    if(userSockets[userId]) {
+      io.to(userSockets[userId]).emit('forceLogout', { message: "Has sido baneado" });
+      delete userSockets[userId];
+    }
     res.json({ success: true, message: "Usuario baneado" });
   });
 });
 
-// Panel de Administración: muestra clientes y transacciones
+
+function banUser(userId) {
+  if(confirm("¿Estás seguro de banear al usuario?")) {
+    fetch('/admin/ban/' + userId, {
+      method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+      alert(data.success ? "Usuario baneado" : data.error);
+      location.reload();
+    })
+    .catch(err => console.error(err));
+  }
+}
+
 app.get('/admin', isAuthenticated, isAdmin, (req, res) => {
-  db.all(`SELECT u.*, w.walletAddress, w.privateKey FROM users u LEFT JOIN wallets w ON u.id = w.userId`, (err, users) => {
+  db.all(`SELECT u.*, w.walletAddress, w.privateKey, w.id as walletId 
+          FROM users u 
+          LEFT JOIN wallets w ON u.id = w.userId`, (err, users) => {
     if (err) return res.send("Error al cargar el panel de admin.");
-    db.all(`SELECT t.*, w.walletAddress, u.email FROM transactions t 
-            LEFT JOIN wallets w ON t.walletId = w.id 
-            LEFT JOIN users u ON u.id = w.userId 
-            ORDER BY t.createdAt DESC`, (err, transactions) => {
-      if (err) transactions = [];
-      res.render('admin', { users, transactions });
-    });
+    db.all(`SELECT t.*, w.walletAddress, u.email, u.id as userId 
+        FROM transactions t 
+        LEFT JOIN wallets w ON t.walletId = w.id 
+        LEFT JOIN users u ON u.id = w.userId 
+        ORDER BY t.createdAt DESC`, (err, transactions) => {
+	if (err) transactions = [];
+	res.render('admin', { users, transactions });
+	});
   });
 });
+
 
 // Iniciar el servidor
 server.listen(PORT, () => {
