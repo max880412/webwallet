@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>My Transactions - Mi Wallet BEP20</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <% include partials/navbar.ejs %>
+    <div class="container">
+        <h2>My Transactions</h2>
+        <% if (transactions.length === 0) { %>
+            <p>No se encontraron transacciones.</p>
+        <% } else { %>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Hash</th>
+                        <th>From</th>
+                        <th>To</th>
+                        <th>Valor</th>
+                        <th>Tipo</th>
+                        <th>Fecha</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% transactions.forEach(function(tx) { %>
+                        <tr>
+                            <td><%= tx.txHash %></td>
+                            <td><%= tx.fromAddress %></td>
+                            <td><%= tx.toAddress %></td>
+                            <td><%= tx.value %></td>
+                            <td><%= tx.direction %></td>
+                            <td><%= tx.createdAt %></td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        <% } %>
+    </div>
+</body>
+</html>

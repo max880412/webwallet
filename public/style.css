@@ -1,52 +1,90 @@
 /* Estilos globales */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #f0f4f8; /* Fondo con tono azul claro */
+    background: #f0f4f8;
     margin: 0;
     padding: 0;
 }
-
 .container {
     max-width: 900px;
     margin: 20px auto;
     background: #ffffff;
     padding: 20px;
     border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
-
 h1, h2, h3 {
     color: #333;
     margin-bottom: 15px;
 }
-
-a {
-    color: #00796b;
-    text-decoration: none;
+.error {
+    color: red;
+    margin-bottom: 15px;
 }
 
-a:hover {
+/* Navbar */
+.navbar {
+    background-color: #00796b;
+    padding: 10px 20px;
+}
+.navbar ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: 15px;
+}
+.navbar ul li {
+    display: inline;
+}
+.navbar ul li a {
+    color: #fff;
+    text-decoration: none;
+    font-weight: bold;
+}
+.navbar ul li a:hover {
     text-decoration: underline;
 }
 
-label {
+/* Formularios y campos */
+.user-field {
+    margin-bottom: 15px;
+}
+.user-field label {
     font-weight: bold;
     margin-bottom: 5px;
     display: block;
+    color: #00796b;
 }
-
-input[type="text"],
-input[type="email"],
-input[type="password"],
-input[type="number"] {
+.user-field input[type="text"],
+.user-field input[type="password"] {
     width: 100%;
     padding: 10px;
-    margin-top: 5px;
-    margin-bottom: 15px;
     border: 1px solid #ccc;
     border-radius: 4px;
 }
 
+/* Tablas */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+table th, table td {
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    text-align: left;
+}
+table th {
+    background-color: #00796b;
+    color: #ffffff;
+    font-weight: bold;
+}
+table tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+/* Botón */
 button {
     background-color: #00796b;
     color: #fff;
@@ -54,74 +92,19 @@ button {
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 1em;
-    margin-top: 10px;
 }
-
 button:hover {
     background-color: #005b4f;
 }
 
-/* Estilos para tablas profesionales y responsivas */
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 20px;
-}
-
-table th, table td {
-    padding: 12px 15px;
-    border: 1px solid #ddd;
-    text-align: left;
-}
-
-table th {
-    background-color: #00796b;
-    color: #ffffff;
-    font-weight: bold;
-}
-
-table tbody tr:nth-child(even) {
-    background-color: #f9f9f9;
-}
-
-/* Diseño responsivo para tablas en dispositivos móviles */
+/* Responsividad */
 @media screen and (max-width: 600px) {
+    .navbar ul {
+        flex-direction: column;
+        gap: 10px;
+    }
     .container {
         margin: 10px;
         padding: 15px;
     }
-
-    table thead {
-        display: none;
-    }
-
-    table, table tbody, table tr, table td {
-        display: block;
-        width: 100%;
-    }
-
-    table tr {
-        margin-bottom: 15px;
-    }
-
-    table td {
-        text-align: right;
-        padding-left: 50%;
-        position: relative;
-    }
-
-    table td::before {
-        content: attr(data-label);
-        position: absolute;
-        left: 15px;
-        width: calc(50% - 30px);
-        padding-right: 10px;
-        font-weight: bold;
-        text-align: left;
-    }
-}
-
-.error {
-    color: #ff0000;
 }

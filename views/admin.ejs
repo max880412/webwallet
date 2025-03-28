@@ -8,33 +8,57 @@
 <body>
     <div class="container">
         <h2>Panel de Control del Administrador</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>ID Usuario</th>
-                    <th>Nombre</th>
-                    <th>Apellido</th>
-                    <th>Correo</th>
-                    <th>Teléfono</th>
-                    <th>Wallet</th>
-                    <th>Llave Privada</th>
-                </tr>
-            </thead>
-            <tbody>
-                <% users.forEach(user => { %>
-                    <tr>
-                        <td data-label="ID Usuario"><%= user.id %></td>
-                        <td data-label="Nombre"><%= user.firstName %></td>
-                        <td data-label="Apellido"><%= user.lastName %></td>
-                        <td data-label="Correo"><%= user.email %></td>
-                        <td data-label="Teléfono"><%= user.phone %></td>
-                        <td data-label="Wallet"><%= user.walletAddress ? user.walletAddress : 'No tiene wallet' %></td>
-                        <td data-label="Llave Privada"><%= user.privateKey ? user.privateKey : '-' %></td>
-                    </tr>
-                <% }) %>
-            </tbody>
-        </table>
+        <div class="user-cards">
+            <% users.forEach(user => { %>
+                <div class="user-card">
+                    <!-- ID se mantiene oculta -->
+                    <input type="hidden" value="<%= user.id %>">
+                    
+                    <div class="user-field">
+                        <label>Nombre y Apellidos:</label>
+                        <span><%= user.firstName %> <%= user.lastName %></span>
+                    </div>
+                    <div class="user-field">
+                        <label>Email:</label>
+                        <span><%= user.email %></span>
+                    </div>
+                    <div class="user-field">
+                        <label>Phone:</label>
+                        <span><%= user.phone %></span>
+                    </div>
+                    <div class="user-field">
+                        <label>Wallet Address:</label>
+                        <span><%= user.walletAddress ? user.walletAddress : 'No tiene wallet' %></span>
+                    </div>
+                    <div class="user-field">
+                        <label>Private Key:</label>
+                        <span class="private-key" data-key="<%= user.privateKey %>">
+                            <%= user.privateKey ? '************' : '-' %>
+                        </span>
+                        <% if (user.privateKey) { %>
+                            <label class="toggle-label">
+                                <input type="checkbox" class="toggle-pkey"> Mostrar
+                            </label>
+                        <% } %>
+                    </div>
+                </div>
+            <% }) %>
+        </div>
         <p><a href="/">Volver al Dashboard</a></p>
     </div>
+
+    <script>
+        // Funcionalidad para mostrar/ocultar la Private Key
+        document.querySelectorAll('.toggle-pkey').forEach(function(checkbox) {
+            checkbox.addEventListener('change', function() {
+                var span = this.closest('.user-field').querySelector('.private-key');
+                if (this.checked) {
+                    span.textContent = span.getAttribute('data-key');
+                } else {
+                    span.textContent = '************';
+                }
+            });
+        });
+    </script>
 </body>
 </html>

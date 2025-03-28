@@ -1,7 +1,7 @@
 {
   "name": "mi-wallet-node",
   "version": "1.0.0",
-  "description": "Aplicación profesional de wallet BEP20 con registro, login y panel admin",
+  "description": "Aplicación profesional de wallet BEP20 con dashboard, transacciones, deposit y perfil",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
@@ -13,6 +13,8 @@
     "ejs": "^3.1.9",
     "express": "^4.18.2",
     "express-session": "^1.17.3",
-    "sqlite3": "^5.1.6"
+    "express-validator": "^6.14.2",
+    "sqlite3": "^5.1.6",
+    "ethers": "^5.7.2"
   }
 }
