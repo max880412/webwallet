@@ -1,28 +1,28 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Login - Mi Wallet BEP20</title>
-    <link rel="stylesheet" href="/style.css">
+  <meta charset="UTF-8">
+  <title>Login - Mi Wallet BEP20</title>
+  <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-    <div class="container">
-        <h2>Iniciar Sesión</h2>
-        <% if (error) { %>
-            <p class="error"><%= error %></p>
-        <% } %>
-        <form action="/login" method="post">
-            <div>
-                <label>Correo:</label>
-                <input type="email" name="email" required>
-            </div>
-            <div>
-                <label>Contraseña:</label>
-                <input type="password" name="password" required>
-            </div>
-            <button type="submit">Ingresar</button>
-        </form>
-        <p>¿No tienes cuenta? <a href="/register">Regístrate aquí</a></p>
-    </div>
+  <div class="container">
+    <h2>Iniciar Sesión</h2>
+    <% if (error) { %>
+      <p class="error"><%= error %></p>
+    <% } %>
+    <form action="/login" method="post">
+      <div class="user-field">
+        <label>Correo:</label>
+        <input type="email" name="email" required>
+      </div>
+      <div class="user-field">
+        <label>Contraseña:</label>
+        <input type="password" name="password" required>
+      </div>
+      <button type="submit">Ingresar</button>
+    </form>
+    <p>¿No tienes cuenta? <a href="/register">Regístrate aquí</a></p>
+  </div>
 </body>
 </html>

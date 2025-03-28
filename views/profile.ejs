@@ -1,46 +1,46 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Profile - Mi Wallet BEP20</title>
-    <link rel="stylesheet" href="/style.css">
+  <meta charset="UTF-8">
+  <title>Profile - Mi Wallet BEP20</title>
+  <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-    <%- include('partials/navbar.ejs') %>
-    <div class="container">
-        <h2>Mi Perfil</h2>
-        <% if (errors.length > 0) { %>
-            <div class="error">
-                <ul>
-                    <% errors.forEach(function(error) { %>
-                        <li><%= error.msg %></li>
-                    <% }) %>
-                </ul>
-            </div>
-        <% } %>
-        <form action="/profile" method="POST">
-            <div class="user-field">
-                <label>Nombre y Apellidos:</label>
-                <span><%= user.firstName %> <%= user.lastName %></span>
-            </div>
-            <div class="user-field">
-                <label>Email:</label>
-                <span><%= user.email %></span>
-            </div>
-            <div class="user-field">
-                <label>Teléfono:</label>
-                <span><%= user.phone %></span>
-            </div>
-            <div class="user-field">
-                <label>Return Wallet (BEP20):</label>
-                <input type="text" name="returnWallet" value="<%= user.returnWallet ? user.returnWallet : '' %>" placeholder="0x...">
-            </div>
-            <div class="user-field">
-                <label>Nueva Contraseña (dejar en blanco para no cambiar):</label>
-                <input type="password" name="newPassword" placeholder="Nueva contraseña">
-            </div>
-            <button type="submit">Actualizar Perfil</button>
-        </form>
-    </div>
+  <%- include('partials/navbar.ejs') %>
+  <div class="container">
+    <h2>Mi Perfil</h2>
+    <% if (errors.length > 0) { %>
+      <div class="error">
+        <ul>
+          <% errors.forEach(function(error) { %>
+            <li><%= error.msg %></li>
+          <% }) %>
+        </ul>
+      </div>
+    <% } %>
+    <form action="/profile" method="POST">
+      <div class="user-field">
+        <label>Nombre y Apellidos:</label>
+        <span><%= user.firstName %> <%= user.lastName %></span>
+      </div>
+      <div class="user-field">
+        <label>Email:</label>
+        <span><%= user.email %></span>
+      </div>
+      <div class="user-field">
+        <label>Teléfono:</label>
+        <span><%= user.phone %></span>
+      </div>
+      <div class="user-field">
+        <label>Return Wallet (BEP20):</label>
+        <input type="text" name="returnWallet" value="<%= user.returnWallet ? user.returnWallet : '' %>" placeholder="0x...">
+      </div>
+      <div class="user-field">
+        <label>Nueva Contraseña (dejar en blanco para no cambiar):</label>
+        <input type="password" name="newPassword" placeholder="Nueva contraseña">
+      </div>
+      <button type="submit">Actualizar Perfil</button>
+    </form>
+  </div>
 </body>
 </html>

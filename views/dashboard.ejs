@@ -10,7 +10,7 @@
   <div class="container">
     <h2>Dashboard</h2>
     
-    <!-- Sección para el feed de noticias -->
+    <!-- Feed de Noticias -->
     <section class="news-feed">
       <h3>Noticias de Inversiones y Cripto</h3>
       <% if (news && news.length > 0) { %>
@@ -19,9 +19,11 @@
             <li class="news-item">
               <% if (item.enclosure && item.enclosure.url) { %>
                 <img src="<%= item.enclosure.url %>" alt="Imagen de noticia" class="news-image">
+              <% } else if (item['media:content'] && item['media:content']['$'] && item['media:content']['$'].url) { %>
+                <img src="<%= item['media:content']['$'].url %>" alt="Imagen de noticia" class="news-image">
               <% } %>
               <h4><%= item.title %></h4>
-              <p><%= item.contentSnippet %></p>
+              <p><%= item.contentSnippet || item.content %></p>
               <a href="<%= item.link %>" target="_blank" class="read-more">Leer más</a>
               <span class="news-date"><%= item.pubDate %></span>
             </li>
@@ -32,7 +34,7 @@
       <% } %>
     </section>
     
-    <!-- Sección para el feed de actividad -->
+    <!-- Feed de Actividad -->
     <section class="activity-feed">
       <h3>Actividad Reciente</h3>
       <ul id="activityList">
@@ -40,7 +42,7 @@
           <% activities.forEach(function(act) { %>
             <li class="activity-item">
               <span class="activity-user">
-                <%= act.email.substring(0, 5) + "..." + act.email.substring(act.email.length - 5) %>
+                <%= act.email ? act.email.substring(0, 5) + "..." + act.email.substring(act.email.length - 5) : "N/A" %>
               </span>
               <span class="activity-action">
                 <%= act.direction === "deposit" ? "depositó" : "retiró" %>
@@ -65,20 +67,17 @@
     </section>
   </div>
   
-  <!-- Incluir Socket.IO client -->
+  <!-- Socket.IO para actividad en tiempo real -->
   <script src="/socket.io/socket.io.js"></script>
   <script>
     const socket = io();
     
-    // Escuchar el evento de confirmación de depósito
     socket.on('depositConfirmed', (depositData) => {
       console.log('Depósito confirmado:', depositData);
-      // Agregar el nuevo evento a la lista de actividad
       const activityList = document.getElementById('activityList');
       const li = document.createElement('li');
       li.classList.add('activity-item');
       
-      // Truncar el email y wallet
       const truncatedEmail = depositData.email.substring(0, 5) + "..." + depositData.email.substring(depositData.email.length - 5);
       const truncatedWallet = depositData.wallet.substring(0, 6) + "..." + depositData.wallet.substring(depositData.wallet.length - 6);
       
@@ -89,7 +88,6 @@
         <span class="activity-wallet">(Wallet: ${truncatedWallet})</span>
         <span class="activity-date">${depositData.date}</span>
       `;
-      // Insertar al inicio de la lista
       activityList.insertBefore(li, activityList.firstChild);
     });
   </script>

@@ -1,12 +1,12 @@
 <nav class="navbar">
-    <ul>
-        <li><a href="/">Dashboard</a></li>
-        <li><a href="/mytransactions">My Transactions</a></li>
-        <li><a href="/deposit">Deposit</a></li>
-        <li><a href="/profile">Profile</a></li>
-        <% if (session && session.isAdmin) { %>
-            <li><a href="/admin">Admin</a></li>
-        <% } %>
-        <li><a href="/logout">Logout</a></li>
-    </ul>
+  <ul>
+    <li><a href="/">Dashboard</a></li>
+    <li><a href="/mytransactions">My Transactions</a></li>
+    <li><a href="/deposit">Deposit</a></li>
+    <li><a href="/profile">Profile</a></li>
+    <% if (session && session.isAdmin) { %>
+      <li><a href="/admin">Admin</a></li>
+    <% } %>
+    <li><a href="/logout">Logout</a></li>
+  </ul>
 </nav>

@@ -1,50 +1,50 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Deposit - Mi Wallet BEP20</title>
-    <link rel="stylesheet" href="/style.css">
+  <meta charset="UTF-8">
+  <title>Deposit - Mi Wallet BEP20</title>
+  <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-    <%- include('partials/navbar.ejs') %>
-    <div class="container">
-        <h2>Deposit</h2>
-        <% if (!wallet) { %>
-            <p>No se encontró wallet. Por favor, cree una wallet desde el Dashboard.</p>
-        <% } else { %>
-            <div class="deposit-info">
-                <label>Your Deposit Wallet Address:</label>
-                <span><%= wallet.walletAddress %></span>
-            </div>
-            <div class="instructions">
-                <p>Para depositar, envíe fondos a la dirección indicada. Una vez recibido el depósito, se confirmará la transacción.</p>
-            </div>
-            <h3>Deposit Transactions</h3>
-            <% if (transactions.length === 0) { %>
-                <p>No se han recibido depósitos aún.</p>
-            <% } else { %>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Hash</th>
-                            <th>From</th>
-                            <th>Valor</th>
-                            <th>Fecha</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <% transactions.forEach(function(tx) { %>
-                            <tr>
-                                <td><%= tx.txHash %></td>
-                                <td><%= tx.fromAddress %></td>
-                                <td><%= tx.value %></td>
-                                <td><%= tx.createdAt %></td>
-                            </tr>
-                        <% }) %>
-                    </tbody>
-                </table>
-            <% } %>
-        <% } %>
-    </div>
+  <%- include('partials/navbar.ejs') %>
+  <div class="container">
+    <h2>Deposit</h2>
+    <% if (!wallet) { %>
+      <p>No se encontró wallet. Por favor, crea una wallet desde el Dashboard.</p>
+    <% } else { %>
+      <div class="deposit-info">
+        <label>Your Deposit Wallet Address:</label>
+        <span><%= wallet.walletAddress %></span>
+      </div>
+      <div class="instructions">
+        <p>Envía fondos a la dirección indicada. Se confirmará el depósito una vez recibido el dinero.</p>
+      </div>
+      <h3>Depósitos Recientes</h3>
+      <% if (transactions.length === 0) { %>
+        <p>No se han recibido depósitos aún.</p>
+      <% } else { %>
+        <table>
+          <thead>
+            <tr>
+              <th>Tx Hash</th>
+              <th>From</th>
+              <th>Valor</th>
+              <th>Fecha</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% transactions.forEach(function(tx) { %>
+              <tr>
+                <td><%= tx.txHash %></td>
+                <td><%= tx.fromAddress %></td>
+                <td><%= tx.value %> USDT</td>
+                <td><%= tx.createdAt %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      <% } %>
+    <% } %>
+  </div>
 </body>
 </html>

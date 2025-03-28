@@ -1,65 +1,173 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Panel de Administrador - Mi Wallet BEP20</title>
-    <link rel="stylesheet" href="/style.css">
+  <meta charset="UTF-8">
+  <title>Panel de Administrador - Mi Wallet BEP20</title>
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    /* Estilos para subtabs en admin */
+    .admin-tabs {
+      margin-top: 20px;
+    }
+    .admin-tab-list {
+      list-style: none;
+      padding: 0;
+      display: flex;
+      border-bottom: 2px solid #00796b;
+      margin-bottom: 20px;
+    }
+    .admin-tab-list li {
+      padding: 10px 20px;
+      cursor: pointer;
+      border: 1px solid #00796b;
+      border-bottom: none;
+      background: #f0f4f8;
+      margin-right: 5px;
+      border-radius: 5px 5px 0 0;
+    }
+    .admin-tab-list li.active {
+      background: #ffffff;
+      font-weight: bold;
+    }
+    .admin-tab-content {
+      display: none;
+    }
+    .admin-tab-content.active {
+      display: block;
+    }
+  </style>
 </head>
 <body>
-	<%- include('partials/navbar.ejs') %>
-    <div class="container">
-        <h2>Panel de Control del Administrador</h2>
-        <div class="user-cards">
-            <% users.forEach(user => { %>
-                <div class="user-card">
-                    <!-- ID se mantiene oculta -->
-                    <input type="hidden" value="<%= user.id %>">
-                    
-                    <div class="user-field">
-                        <label>Nombre y Apellidos:</label>
-                        <span><%= user.firstName %> <%= user.lastName %></span>
-                    </div>
-                    <div class="user-field">
-                        <label>Email:</label>
-                        <span><%= user.email %></span>
-                    </div>
-                    <div class="user-field">
-                        <label>Phone:</label>
-                        <span><%= user.phone %></span>
-                    </div>
-                    <div class="user-field">
-                        <label>Wallet Address:</label>
-                        <span><%= user.walletAddress ? user.walletAddress : 'No tiene wallet' %></span>
-                    </div>
-                    <div class="user-field">
-                        <label>Private Key:</label>
-                        <span class="private-key" data-key="<%= user.privateKey %>">
-                            <%= user.privateKey ? '************' : '-' %>
-                        </span>
-                        <% if (user.privateKey) { %>
-                            <label class="toggle-label">
-                                <input type="checkbox" class="toggle-pkey"> Mostrar
-                            </label>
-                        <% } %>
-                    </div>
-                </div>
-            <% }) %>
-        </div>
-        <p><a href="/">Volver al Dashboard</a></p>
+  <%- include('partials/navbar.ejs') %>
+  <div class="container">
+    <h2>Panel de Control del Administrador</h2>
+    <div class="admin-tabs">
+      <ul class="admin-tab-list">
+        <li class="admin-tab active" data-tab="clientes">Clientes</li>
+        <li class="admin-tab" data-tab="transacciones">Transacciones</li>
+      </ul>
+      <!-- Clientes: se muestran en "cards" -->
+      <div class="admin-tab-content active" id="clientes">
+        <% if (users && users.length > 0) { %>
+          <% users.forEach(function(user) { %>
+            <div class="client-card">
+              <div class="client-field">
+                <label>Nombre y Apellidos:</label>
+                <span><%= user.firstName %> <%= user.lastName %></span>
+              </div>
+              <div class="client-field">
+                <label>Email:</label>
+                <span><%= user.email %></span>
+              </div>
+              <div class="client-field">
+                <label>Teléfono:</label>
+                <span><%= user.phone %></span>
+              </div>
+              <div class="client-field">
+                <label>Wallet Address:</label>
+                <span><%= user.walletAddress ? user.walletAddress : 'No tiene wallet' %></span>
+              </div>
+              <div class="client-field">
+                <label>Private Key:</label>
+                <span class="private-key" data-key="<%= user.privateKey %>">
+                  <%= user.privateKey ? '************' : '-' %>
+                </span>
+                <% if (user.privateKey) { %>
+                  <label class="toggle-label">
+                    <input type="checkbox" class="toggle-pkey"> Mostrar
+                  </label>
+                <% } %>
+              </div>
+              <% if(user.banned == 1) { %>
+                <p style="color: red; font-weight: bold;">Usuario BANEADO</p>
+              <% } %>
+            </div>
+          <% }); %>
+        <% } else { %>
+          <p>No se encontraron clientes.</p>
+        <% } %>
+      </div>
+      <!-- Transacciones: se muestran en "cards" con botones -->
+      <div class="admin-tab-content" id="transacciones">
+        <% if (transactions && transactions.length > 0) { %>
+          <% transactions.forEach(function(tx) { %>
+            <div class="transaction-card">
+              <span><strong>Tx Hash:</strong> <%= tx.txHash %></span><br>
+              <span><strong>Email:</strong> <%= tx.email ? tx.email.substring(0,5) + '...' + tx.email.substring(tx.email.length-5) : 'N/A' %></span><br>
+              <span><strong>From:</strong> <%= tx.fromAddress %></span><br>
+              <span><strong>To:</strong> <%= tx.toAddress %></span><br>
+              <span><strong>Valor:</strong> <%= tx.value %> USDT</span><br>
+              <span><strong>Tipo:</strong> <%= tx.direction %></span><br>
+              <span><strong>Fecha:</strong> <%= tx.createdAt %></span><br>
+              <% if (tx.direction === 'deposit') { %>
+                <button onclick="refundTx(<%= tx.id %>)">Devolver</button>
+                <% if(tx.email){ %>
+                  <button onclick="banUser('<%= tx.email %>')">Banear</button>
+                <% } %>
+              <% } %>
+            </div>
+          <% }); %>
+        <% } else { %>
+          <p>No se encontraron transacciones.</p>
+        <% } %>
+      </div>
     </div>
-
-    <script>
-        // Funcionalidad para mostrar/ocultar la Private Key
-        document.querySelectorAll('.toggle-pkey').forEach(function(checkbox) {
-            checkbox.addEventListener('change', function() {
-                var span = this.closest('.user-field').querySelector('.private-key');
-                if (this.checked) {
-                    span.textContent = span.getAttribute('data-key');
-                } else {
-                    span.textContent = '************';
-                }
-            });
+  </div>
+  
+  <script>
+    // Subtabs para el panel de admin
+    document.querySelectorAll('.admin-tab').forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        document.querySelectorAll('.admin-tab').forEach(function(t) {
+          t.classList.remove('active');
         });
-    </script>
+        document.querySelectorAll('.admin-tab-content').forEach(function(content) {
+          content.classList.remove('active');
+        });
+        this.classList.add('active');
+        document.getElementById(this.getAttribute('data-tab')).classList.add('active');
+      });
+    });
+    
+    // Funcionalidad para mostrar/ocultar la Private Key
+    document.querySelectorAll('.toggle-pkey').forEach(function(checkbox) {
+      checkbox.addEventListener('change', function() {
+        var span = this.closest('.client-field').querySelector('.private-key');
+        if (this.checked) {
+          span.textContent = span.getAttribute('data-key');
+        } else {
+          span.textContent = '************';
+        }
+      });
+    });
+    
+    // Función para llamar al endpoint de devolución manual
+    function refundTx(txId) {
+      fetch('/admin/refund/' + txId, {
+        method: 'POST'
+      })
+      .then(response => response.json())
+      .then(data => {
+        alert(data.success ? "Devolución procesada" : data.error);
+        location.reload();
+      })
+      .catch(err => console.error(err));
+    }
+    
+    // Función para banear usuario; para simplificar, se busca por email (debería buscarse por ID en producción)
+    function banUser(email) {
+      if(confirm("¿Estás seguro de banear al usuario " + email + "?")) {
+        fetch('/admin/ban/' + email, { // En este ejemplo se usa email como identificador
+          method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+          alert(data.success ? "Usuario baneado" : data.error);
+          location.reload();
+        })
+        .catch(err => console.error(err));
+      }
+    }
+  </script>
 </body>
 </html>
