@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-    <% include partials/navbar.ejs %>
+    <%- include('partials/navbar.ejs') %>
     <div class="container">
         <h2>My Transactions</h2>
         <% if (transactions.length === 0) { %>

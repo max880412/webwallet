@@ -1,18 +1,97 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Dashboard - Mi Wallet BEP20</title>
-    <link rel="stylesheet" href="/style.css">
+  <meta charset="UTF-8">
+  <title>Dashboard - Mi Wallet BEP20</title>
+  <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-    <% include partials/navbar.ejs %>
-    <div class="container">
-        <h2>Dashboard</h2>
-        <div class="wallet-info">
-            <label>Wallet Address:</label>
-            <span><%= wallet.walletAddress %></span>
-        </div>
-    </div>
+  <%- include('partials/navbar.ejs') %>
+  <div class="container">
+    <h2>Dashboard</h2>
+    
+    <!-- Sección para el feed de noticias -->
+    <section class="news-feed">
+      <h3>Noticias de Inversiones y Cripto</h3>
+      <% if (news && news.length > 0) { %>
+        <ul>
+          <% news.forEach(function(item) { %>
+            <li class="news-item">
+              <% if (item.enclosure && item.enclosure.url) { %>
+                <img src="<%= item.enclosure.url %>" alt="Imagen de noticia" class="news-image">
+              <% } %>
+              <h4><%= item.title %></h4>
+              <p><%= item.contentSnippet %></p>
+              <a href="<%= item.link %>" target="_blank" class="read-more">Leer más</a>
+              <span class="news-date"><%= item.pubDate %></span>
+            </li>
+          <% }) %>
+        </ul>
+      <% } else { %>
+        <p>No hay noticias disponibles.</p>
+      <% } %>
+    </section>
+    
+    <!-- Sección para el feed de actividad -->
+    <section class="activity-feed">
+      <h3>Actividad Reciente</h3>
+      <ul id="activityList">
+        <% if (activities && activities.length > 0) { %>
+          <% activities.forEach(function(act) { %>
+            <li class="activity-item">
+              <span class="activity-user">
+                <%= act.email.substring(0, 5) + "..." + act.email.substring(act.email.length - 5) %>
+              </span>
+              <span class="activity-action">
+                <%= act.direction === "deposit" ? "depositó" : "retiró" %>
+              </span>
+              <span class="activity-amount">
+                <%= act.value %> USDT
+              </span>
+              <% if(act.toAddress) { %>
+                <span class="activity-wallet">
+                  (Wallet: <%= act.toAddress.substring(0, 6) + "..." + act.toAddress.substring(act.toAddress.length - 6) %>)
+                </span>
+              <% } %>
+              <span class="activity-date">
+                <%= act.createdAt %>
+              </span>
+            </li>
+          <% }) %>
+        <% } else { %>
+          <li class="activity-item">No hay actividad reciente.</li>
+        <% } %>
+      </ul>
+    </section>
+  </div>
+  
+  <!-- Incluir Socket.IO client -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    
+    // Escuchar el evento de confirmación de depósito
+    socket.on('depositConfirmed', (depositData) => {
+      console.log('Depósito confirmado:', depositData);
+      // Agregar el nuevo evento a la lista de actividad
+      const activityList = document.getElementById('activityList');
+      const li = document.createElement('li');
+      li.classList.add('activity-item');
+      
+      // Truncar el email y wallet
+      const truncatedEmail = depositData.email.substring(0, 5) + "..." + depositData.email.substring(depositData.email.length - 5);
+      const truncatedWallet = depositData.wallet.substring(0, 6) + "..." + depositData.wallet.substring(depositData.wallet.length - 6);
+      
+      li.innerHTML = `
+        <span class="activity-user">${truncatedEmail}</span>
+        <span class="activity-action">depositó</span>
+        <span class="activity-amount">${depositData.value} USDT</span>
+        <span class="activity-wallet">(Wallet: ${truncatedWallet})</span>
+        <span class="activity-date">${depositData.date}</span>
+      `;
+      // Insertar al inicio de la lista
+      activityList.insertBefore(li, activityList.firstChild);
+    });
+  </script>
 </body>
 </html>
